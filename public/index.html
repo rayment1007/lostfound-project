@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campus Lost & Found</title>
+  <meta name="description" content="Campus Lost & Found Management System (Frontend)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">LF</div>
+        <div>
+          <h1 class="brand-title">Campus Lost &amp; Found</h1>
+          <p class="brand-subtitle">Report • Track • Claim</p>
+        </div>
+      </div>
+
+      <nav class="top-nav" aria-label="Primary">
+        <button id="btnLogout" class="btn btn-danger-outline" type="button" hidden>Logout</button>
+        <button id="btnOpenCreate" class="btn btn-primary" type="button">
+          + New Report
+        </button>
+        <a class="btn btn-ghost" href="#how">How it works</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="container main">
+    <section class="panel" aria-labelledby="dashboardTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="dashboardTitle">Dashboard</h2>
+          <p class="muted">Browse and manage lost &amp; found reports.</p>
+        </div>
+
+        <div class="segmented" role="tablist" aria-label="Category tabs">
+          <button class="seg-btn" role="tab" aria-selected="true" id="tabAll" data-tab="all" type="button">All</button>
+          <button class="seg-btn" role="tab" aria-selected="false" id="tabLost" data-tab="lost" type="button">Lost</button>
+          <button class="seg-btn" role="tab" aria-selected="false" id="tabFound" data-tab="found" type="button">Found</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="field">
+          <label class="label" for="q">Search</label>
+          <input id="q" class="input" type="search" placeholder="e.g., wallet, keys, laptop..." autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="statusFilter">Status</label>
+          <select id="statusFilter" class="select">
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="claimed">Claimed</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sortBy">Sort</label>
+          <select id="sortBy" class="select">
+            <option value="date_desc">Newest</option>
+            <option value="date_asc">Oldest</option>
+            <option value="title_asc">Title A→Z</option>
+            <option value="title_desc">Title Z→A</option>
+          </select>
+        </div>
+
+        <div class="toolbar-actions">
+          <button id="btnSeed" class="btn btn-ghost" type="button">Load sample</button>
+          <button id="btnClear" class="btn btn-danger-outline" type="button">Clear local data</button>
+        </div>
+      </div>
+
+      <div class="stats" aria-label="Summary">
+        <div class="stat">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Active</div>
+          <div class="stat-value" id="statActive">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Claimed</div>
+          <div class="stat-value" id="statClaimed">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Resolved</div>
+          <div class="stat-value" id="statResolved">0</div>
+        </div>
+      </div>
+
+      <div class="list-wrap">
+        <div class="list-head">
+          <h3 class="h3">Reports</h3>
+          <p class="muted" id="listMeta">0 items</p>
+        </div>
+
+        <div id="list" class="grid" aria-live="polite"></div>
+
+        <div id="emptyState" class="empty" hidden>
+          <h4>No reports found</h4>
+          <p class="muted">Try adjusting filters, or create a new report.</p>
+          <button class="btn btn-primary" id="btnOpenCreate2" type="button">+ New Report</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="how" class="panel" aria-labelledby="howTitle">
+      <h2 id="howTitle">How it works</h2>
+      <ol class="steps">
+        <li><strong>Create</strong> a Lost or Found report with details and contact info.</li>
+        <li><strong>Track</strong> the status: Active → Claimed/Resolved.</li>
+        <li><strong>Manage</strong> reports: view details, update status, delete if needed.</li>
+      </ol>
+      <p class="muted">
+        Note: This frontend is built with a backend-ready API layer. When your Node/Express API is ready,
+        switch to server mode in <code>api.js</code>.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="muted">© <span id="year"></span> Campus Lost &amp; Found</p>
+      <p class="muted">Frontend demo (HTML/CSS/JS) • Accessible • Responsive</p>
+    </div>
+  </footer>
+
+  <!-- Create / Edit Modal -->
+  <dialog id="modalForm" class="modal">
+    <form id="reportForm" class="modal-card" method="dialog" novalidate>
+      <div class="modal-head">
+        <h3 id="formTitle">New Report</h3>
+        <button class="icon-btn" type="button" id="btnCloseForm" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="reportId" />
+
+        <div class="row">
+          <div class="field">
+            <label class="label" for="category">Category</label>
+            <select id="category" class="select" required>
+              <option value="">Select…</option>
+              <option value="lost">Lost</option>
+              <option value="found">Found</option>
+            </select>
+            <div class="help" id="errCategory" aria-live="polite"></div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="date">Date</label>
+            <input id="date" class="input" type="date" required />
+            <div class="help" id="errDate" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="title">Title</label>
+          <input id="title" class="input" type="text" required maxlength="80" placeholder="e.g., Black wallet near library" />
+          <div class="help" id="errTitle" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="location">Location</label>
+          <input id="location" class="input" type="text" required maxlength="80" placeholder="e.g., Library, Block A, Cafeteria" />
+          <div class="help" id="errLocation" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="description">Description</label>
+          <textarea id="description" class="textarea" required maxlength="500"
+            placeholder="Include color, brand, identifiable marks, etc."></textarea>
+          <div class="help" id="errDescription" aria-live="polite"></div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="label" for="contact">Contact Information</label>
+            <input id="contact" class="input" type="text" required maxlength="120" placeholder="e.g., 012-3456789 / email" />
+            <div class="help" id="errContact" aria-live="polite"></div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="status">Status</label>
+            <select id="status" class="select" required>
+              <option value="active">Active</option>
+              <option value="claimed">Claimed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <div class="help muted">Allowed: Active → Claimed/Resolved</div>
+          </div>
+        </div>
+
+        <div class="callout" role="note">
+          <strong>Safety note:</strong> Avoid entering sensitive personal data. Use minimal contact info necessary.
+        </div>
+
+        <div class="form-error" id="formError" hidden></div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn btn-ghost" type="button" id="btnCancel">Cancel</button>
+        <button class="btn btn-primary" type="submit" id="btnSubmit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Details Modal -->
+  <dialog id="modalDetails" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Report Details</h3>
+        <button class="icon-btn" type="button" id="btnCloseDetails" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body" id="detailsBody"></div>
+
+      <div class="modal-foot">
+        <button class="btn btn-ghost" type="button" id="btnDetailsClose">Close</button>
+        <button class="btn btn-primary" type="button" id="btnEdit">Edit</button>
+        <button class="btn btn-danger" type="button" id="btnDelete">Delete</button>
+      </div>
+    </div>
+  </dialog>
+
+<script type="module" src="./js/app.js"></script>
+
+  <dialog id="modalAuth" class="modal">
+  <form id="authForm" class="modal-card" method="dialog" novalidate>
+    <div class="modal-head">
+      <h3 id="authTitle">Login</h3>
+      <button class="icon-btn" type="button" id="btnCloseAuth" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="segmented" role="tablist" aria-label="Auth tabs">
+        <button class="seg-btn" type="button" id="tabLogin" aria-selected="true">Login</button>
+        <button class="seg-btn" type="button" id="tabRegister" aria-selected="false">Register</button>
+      </div>
+
+      <div class="field">
+        <label class="label" for="authEmail">Email</label>
+        <input id="authEmail" class="input" type="email" autocomplete="email" required placeholder="you@qiu.edu" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="authPassword">Password</label>
+        <input id="authPassword" class="input" type="password" autocomplete="current-password" required minlength="8" />
+        <div class="help muted">Min 8 characters.</div>
+      </div>
+
+      <div class="form-error" id="authError" hidden></div>
+      <div class="callout" role="note">
+        After login, you can view reports and manage your own posts.
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" id="btnAuthCancel">Cancel</button>
+      <button class="btn btn-primary" type="submit" id="btnAuthSubmit">Continue</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>
