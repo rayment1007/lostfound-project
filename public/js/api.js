@@ -1,6 +1,9 @@
 // public/js/api.js
-const BASE_URL = "http://localhost:3000";
 const TOKEN_KEY = "lf_token_v1";
+
+// 线上优先读 window.API_BASE_URL
+// 没设置时默认同源，这样前后端同域最省事
+const BASE_URL = window.API_BASE_URL || "";
 
 export const authStore = {
   getToken() {
@@ -22,22 +25,39 @@ async function http(path, options = {}) {
     ...(options.headers || {}),
   };
 
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  const res = await fetch(BASE_URL + path, { ...options, headers });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  const ct = res.headers.get("content-type") || "";
-  if (ct.includes("application/json")) return res.json();
-  return res.text();
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const contentType = res.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+
+  let data;
+  try {
+    data = isJson ? await res.json() : await res.text();
+  } catch {
+    data = null;
+  }
+
+  if (!res.ok) {
+    const message =
+      (isJson && data && (data.error || data.message)) ||
+      (typeof data === "string" && data) ||
+      res.statusText ||
+      "Request failed";
+
+    throw new Error(`HTTP ${res.status}: ${message}`);
+  }
+
+  return data;
 }
 
 export const api = {
-  // auth
   register: (email, password) =>
     http("/api/auth/register", {
       method: "POST",
@@ -55,16 +75,20 @@ export const api = {
 
   logout: () => authStore.clear(),
 
-  // items
   getAll: () => http("/api/items"),
   getById: (id) => http(`/api/items/${encodeURIComponent(id)}`),
   create: (payload) =>
-    http("/api/items", { method: "POST", body: JSON.stringify(payload) }),
+    http("/api/items", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   update: (id, patch) =>
     http(`/api/items/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
   remove: (id) =>
-    http(`/api/items/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    http(`/api/items/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
 };
