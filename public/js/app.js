@@ -72,6 +72,28 @@ function safeText(el, text) {
   el.textContent = String(text ?? "");
 }
 
+function getCurrentUser() {
+  return authStore.getUser();
+}
+
+function isOwner(item) {
+  const user = getCurrentUser();
+  if (!user || !item) return false;
+  return Number(user.id) === Number(item.owner_user_id);
+}
+
+function syncDetailActionButtons(item) {
+  const owner = isOwner(item);
+
+  if (els.btnEdit) {
+    els.btnEdit.hidden = !owner;
+  }
+
+  if (els.btnDelete) {
+    els.btnDelete.hidden = !owner;
+  }
+}
+
 function fmtDate(value) {
   try {
     const d = new Date(value);
@@ -218,20 +240,24 @@ function renderCard(item) {
   btnView.type = "button";
   btnView.textContent = "View";
   btnView.addEventListener("click", () => openDetails(item.id));
+  actions.appendChild(btnView);
 
-  const btnStatus = document.createElement("button");
-  btnStatus.className = "link-btn";
-  btnStatus.type = "button";
-  btnStatus.textContent = "Next status";
-  btnStatus.addEventListener("click", () => quickAdvanceStatus(item));
+  if (isOwner(item)) {
+    const btnStatus = document.createElement("button");
+    btnStatus.className = "link-btn";
+    btnStatus.type = "button";
+    btnStatus.textContent = "Next status";
+    btnStatus.addEventListener("click", () => quickAdvanceStatus(item));
 
-  const btnDelete = document.createElement("button");
-  btnDelete.className = "link-btn";
-  btnDelete.type = "button";
-  btnDelete.textContent = "Delete";
-  btnDelete.addEventListener("click", () => removeItem(item.id));
+    const btnDelete = document.createElement("button");
+    btnDelete.className = "link-btn";
+    btnDelete.type = "button";
+    btnDelete.textContent = "Delete";
+    btnDelete.addEventListener("click", () => removeItem(item.id));
 
-  actions.append(btnView, btnStatus, btnDelete);
+    actions.append(btnStatus, btnDelete);
+  }
+
   card.append(top, desc, actions);
 
   card.addEventListener("keydown", (e) => {
@@ -248,6 +274,8 @@ function nextStatus(s) {
 }
 
 async function quickAdvanceStatus(item) {
+  if (!isOwner(item)) return;
+
   try {
     const updated = await api.update(item.id, { status: nextStatus(item.status) });
     state.items = state.items.map((x) => (x.id === item.id ? updated : x));
@@ -291,6 +319,8 @@ function openCreate() {
 }
 
 function openEdit(item) {
+  if (!isOwner(item)) return;
+
   els.formTitle.textContent = "Edit Report";
   els.reportId.value = item.id;
   els.category.value = item.category;
@@ -334,6 +364,12 @@ async function submitForm(e) {
     const id = els.reportId.value;
 
     if (id) {
+      const original = state.items.find((x) => String(x.id) === String(id));
+      if (!isOwner(original)) {
+        alert("You can only edit your own report.");
+        return;
+      }
+
       const updated = await api.update(id, payload);
       state.items = state.items.map((x) => (x.id === id ? updated : x));
     } else {
@@ -402,6 +438,7 @@ function openDetails(id) {
 
   els.detailsBody.innerHTML = "";
   els.detailsBody.appendChild(detailsTemplate(item));
+  syncDetailActionButtons(item);
   els.modalDetails.showModal();
 }
 
@@ -412,6 +449,8 @@ function closeDetails() {
 
 async function removeItem(id) {
   const item = state.items.find((x) => x.id === id);
+  if (!isOwner(item)) return;
+
   const ok = confirm(`Delete "${item?.title || "this report"}"?`);
   if (!ok) return;
 
@@ -452,13 +491,15 @@ function wireEvents() {
 
   els.btnEdit.addEventListener("click", () => {
     const item = state.items.find((x) => x.id === state.selectedId);
-    if (!item) return;
+    if (!item || !isOwner(item)) return;
     closeDetails();
     openEdit(item);
   });
 
   els.btnDelete.addEventListener("click", () => {
     if (!state.selectedId) return;
+    const item = state.items.find((x) => x.id === state.selectedId);
+    if (!item || !isOwner(item)) return;
     removeItem(state.selectedId);
   });
 

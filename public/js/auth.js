@@ -16,14 +16,18 @@ const els = {
 
 let mode = "login";
 
+function isQiuEmail(email) {
+  return /^[a-zA-Z0-9._%+-]+@qiu\.edu\.my$/i.test(email.trim());
+}
+
 function setMode(nextMode) {
   mode = nextMode;
 
   els.title.textContent = mode === "login" ? "Login" : "Register";
   els.subtitle.textContent =
     mode === "login"
-      ? "Access your dashboard and manage your reports."
-      : "Create an account to start using the system.";
+      ? "Use your QIU email to access the portal."
+      : "Create an account using your QIU email address.";
 
   els.tabLogin.setAttribute("aria-selected", mode === "login" ? "true" : "false");
   els.tabRegister.setAttribute("aria-selected", mode === "register" ? "true" : "false");
@@ -36,11 +40,23 @@ function setMode(nextMode) {
 async function handleSubmit(e) {
   e.preventDefault();
 
-  const email = els.email.value.trim();
+  const email = els.email.value.trim().toLowerCase();
   const password = els.password.value;
 
   els.error.hidden = true;
   els.error.textContent = "";
+
+  if (!isQiuEmail(email)) {
+    els.error.hidden = false;
+    els.error.textContent = "Please use a valid QIU email address ending with @qiu.edu.my.";
+    return;
+  }
+
+  if (password.length < 8) {
+    els.error.hidden = false;
+    els.error.textContent = "Password must be at least 8 characters.";
+    return;
+  }
 
   try {
     if (mode === "register") {

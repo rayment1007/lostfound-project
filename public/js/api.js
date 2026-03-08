@@ -95,6 +95,7 @@ export const api = {
     });
 
     authStore.setToken(data.token);
+
     if (data.user) {
       authStore.setUser(data.user);
     }
