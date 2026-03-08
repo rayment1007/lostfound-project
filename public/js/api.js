@@ -1,19 +1,43 @@
-// public/js/api.js
 const TOKEN_KEY = "lf_token_v1";
+const USER_KEY = "lf_user_v1";
 
-// 线上优先读 window.API_BASE_URL
-// 没设置时默认同源，这样前后端同域最省事
 const BASE_URL = window.API_BASE_URL || "";
 
 export const authStore = {
   getToken() {
     return localStorage.getItem(TOKEN_KEY) || "";
   },
+
   setToken(token) {
     localStorage.setItem(TOKEN_KEY, token);
   },
+
+  clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+  },
+
+  getUser() {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  },
+
+  setUser(user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  },
+
+  clearUser() {
+    localStorage.removeItem(USER_KEY);
+  },
+
   clear() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   },
 };
 
@@ -69,7 +93,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+
     authStore.setToken(data.token);
+    if (data.user) {
+      authStore.setUser(data.user);
+    }
+
     return data;
   },
 
@@ -77,16 +106,19 @@ export const api = {
 
   getAll: () => http("/api/items"),
   getById: (id) => http(`/api/items/${encodeURIComponent(id)}`),
+
   create: (payload) =>
     http("/api/items", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
   update: (id, patch) =>
     http(`/api/items/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
+
   remove: (id) =>
     http(`/api/items/${encodeURIComponent(id)}`, {
       method: "DELETE",

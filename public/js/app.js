@@ -4,7 +4,6 @@ import { validateReport, normalizeStatus, normalizeCategory } from "./validators
 const $ = (sel) => document.querySelector(sel);
 
 const els = {
-  // Main UI
   year: $("#year"),
   list: $("#list"),
   empty: $("#emptyState"),
@@ -29,8 +28,8 @@ const els = {
   btnClear: $("#btnClear"),
 
   btnLogout: $("#btnLogout"),
+  currentUserEmail: $("#currentUserEmail"),
 
-  // Create/Edit modal
   modalForm: $("#modalForm"),
   reportForm: $("#reportForm"),
   formTitle: $("#formTitle"),
@@ -54,44 +53,34 @@ const els = {
   errDescription: $("#errDescription"),
   errContact: $("#errContact"),
 
-  // Details modal
   modalDetails: $("#modalDetails"),
   detailsBody: $("#detailsBody"),
   btnCloseDetails: $("#btnCloseDetails"),
   btnDetailsClose: $("#btnDetailsClose"),
   btnEdit: $("#btnEdit"),
   btnDelete: $("#btnDelete"),
-
-  // Auth modal
-  modalAuth: $("#modalAuth"),
-  authForm: $("#authForm"),
-  authTitle: $("#authTitle"),
-  tabLogin: $("#tabLogin"),
-  tabRegister: $("#tabRegister"),
-  authEmail: $("#authEmail"),
-  authPassword: $("#authPassword"),
-  authError: $("#authError"),
-  btnCloseAuth: $("#btnCloseAuth"),
-  btnAuthCancel: $("#btnAuthCancel"),
 };
 
 let state = {
   items: [],
   tab: "all",
   selectedId: null,
-  authMode: "login", // "login" | "register"
 };
 
 function safeText(el, text) {
+  if (!el) return;
   el.textContent = String(text ?? "");
 }
 
-// Format ISO date or ISO timestamp to a readable date
 function fmtDate(value) {
   try {
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value ?? "");
-    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
   } catch {
     return String(value ?? "");
   }
@@ -141,6 +130,7 @@ function setTab(tab) {
     const isActive = btn.dataset.tab === tab;
     btn.setAttribute("aria-selected", isActive ? "true" : "false");
   }
+
   render();
 }
 
@@ -156,10 +146,12 @@ function render() {
   safeText(els.listMeta, `${filtered.length} item${filtered.length === 1 ? "" : "s"}`);
 
   els.list.innerHTML = "";
+
   if (filtered.length === 0) {
     els.empty.hidden = false;
     return;
   }
+
   els.empty.hidden = true;
 
   for (const item of filtered) {
@@ -207,13 +199,15 @@ function renderCard(item) {
   safeText(b2, item.status[0].toUpperCase() + item.status.slice(1));
 
   badges.append(b1, b2);
-
   top.append(left, badges);
 
   const desc = document.createElement("p");
   desc.className = "muted";
   desc.style.margin = "0";
-  const preview = item.description?.length > 120 ? item.description.slice(0, 120) + "…" : item.description;
+  const preview =
+    item.description?.length > 120
+      ? item.description.slice(0, 120) + "…"
+      : item.description;
   safeText(desc, preview);
 
   const actions = document.createElement("div");
@@ -238,7 +232,6 @@ function renderCard(item) {
   btnDelete.addEventListener("click", () => removeItem(item.id));
 
   actions.append(btnView, btnStatus, btnDelete);
-
   card.append(top, desc, actions);
 
   card.addEventListener("keydown", (e) => {
@@ -283,11 +276,6 @@ function showErrors(errors) {
 }
 
 function openCreate() {
-  if (!authStore.getToken()) {
-    openAuth("login");
-    return;
-  }
-
   els.formTitle.textContent = "New Report";
   els.reportId.value = "";
   els.category.value = "";
@@ -306,7 +294,6 @@ function openEdit(item) {
   els.formTitle.textContent = "Edit Report";
   els.reportId.value = item.id;
   els.category.value = item.category;
-  // Ensure date input gets YYYY-MM-DD
   els.date.value = String(item.date).slice(0, 10);
   els.title.value = item.title;
   els.location.value = item.location;
@@ -337,6 +324,7 @@ async function submitForm(e) {
 
   const v = validateReport(payload);
   clearErrors();
+
   if (!v.ok) {
     showErrors(v.errors);
     return;
@@ -344,6 +332,7 @@ async function submitForm(e) {
 
   try {
     const id = els.reportId.value;
+
     if (id) {
       const updated = await api.update(id, payload);
       state.items = state.items.map((x) => (x.id === id ? updated : x));
@@ -351,6 +340,7 @@ async function submitForm(e) {
       const created = await api.create(payload);
       state.items = [created, ...state.items];
     }
+
     closeForm();
     render();
   } catch (err) {
@@ -428,67 +418,25 @@ async function removeItem(id) {
   try {
     await api.remove(id);
     state.items = state.items.filter((x) => x.id !== id);
-    if (state.selectedId === id) closeDetails();
+
+    if (state.selectedId === id) {
+      closeDetails();
+    }
+
     render();
   } catch (err) {
     alert(`Delete failed: ${err.message}`);
   }
 }
 
-/* -------------------- Auth modal -------------------- */
-
-function openAuth(mode = "login") {
-  state.authMode = mode;
-
-  els.authTitle.textContent = mode === "login" ? "Login" : "Register";
-  els.tabLogin.setAttribute("aria-selected", mode === "login" ? "true" : "false");
-  els.tabRegister.setAttribute("aria-selected", mode === "register" ? "true" : "false");
-
-  els.authError.hidden = true;
-  els.authPassword.value = "";
-
-  if (!els.modalAuth.open) els.modalAuth.showModal();
-}
-
-function closeAuth() {
-  if (els.modalAuth.open) els.modalAuth.close();
-}
-
-async function handleAuthSubmit(e) {
-  e.preventDefault();
-
-  const email = els.authEmail.value.trim();
-  const password = els.authPassword.value;
-
-  els.authError.hidden = true;
-
-  try {
-    if (state.authMode === "register") {
-      await api.register(email, password);
-    }
-    await api.login(email, password);
-
-    closeAuth();
-    if (els.btnLogout) els.btnLogout.hidden = false;
-
-    await loadItemsAndRender();
-  } catch (err) {
-    els.authError.hidden = false;
-    els.authError.textContent = err.message;
-  }
-}
-
-async function loadItemsAndRender() {
-  state.items = await api.getAll();
-  render();
-}
-
-/* -------------------- Bootstrap -------------------- */
-
 function setupUiForServerMode() {
-  // These two buttons were for localStorage demo mode; hide them in server mode.
   if (els.btnSeed) els.btnSeed.style.display = "none";
   if (els.btnClear) els.btnClear.style.display = "none";
+}
+
+function showCurrentUser() {
+  const user = authStore.getUser();
+  safeText(els.currentUserEmail, user?.email || "Unknown user");
 }
 
 function wireEvents() {
@@ -522,38 +470,36 @@ function wireEvents() {
   els.tabLost.addEventListener("click", () => setTab("lost"));
   els.tabFound.addEventListener("click", () => setTab("found"));
 
-  // Auth events
-  els.tabLogin.addEventListener("click", () => openAuth("login"));
-  els.tabRegister.addEventListener("click", () => openAuth("register"));
-  els.btnCloseAuth.addEventListener("click", closeAuth);
-  els.btnAuthCancel.addEventListener("click", closeAuth);
-  els.authForm.addEventListener("submit", handleAuthSubmit);
-
   if (els.btnLogout) {
     els.btnLogout.addEventListener("click", () => {
       api.logout();
-      state.items = [];
-      render();
-      els.btnLogout.hidden = true;
-      openAuth("login");
+      window.location.href = "./auth.html";
     });
   }
+}
+
+async function loadItemsAndRender() {
+  state.items = await api.getAll();
+  render();
 }
 
 async function start() {
   els.year.textContent = String(new Date().getFullYear());
 
-  setupUiForServerMode();
-  wireEvents();
-
   const token = authStore.getToken();
   if (!token) {
-    if (els.btnLogout) els.btnLogout.hidden = true;
-    openAuth("login");
+    window.location.href = "./auth.html";
     return;
   }
 
-  if (els.btnLogout) els.btnLogout.hidden = false;
+  setupUiForServerMode();
+  wireEvents();
+  showCurrentUser();
+
+  if (els.btnLogout) {
+    els.btnLogout.hidden = false;
+  }
+
   await loadItemsAndRender();
 }
 

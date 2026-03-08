@@ -22,13 +22,23 @@
         </div>
       </div>
 
-      <nav class="top-nav" aria-label="Primary">
-        <button id="btnLogout" class="btn btn-danger-outline" type="button" hidden>Logout</button>
-        <button id="btnOpenCreate" class="btn btn-primary" type="button">
-          + New Report
-        </button>
-        <a class="btn btn-ghost" href="#how">How it works</a>
-      </nav>
+<nav class="top-nav" aria-label="Primary">
+  <div class="user-chip">
+    <span class="user-chip-label">Signed in as</span>
+    <strong id="currentUserEmail">-</strong>
+  </div>
+
+  <button id="btnLogout" class="btn btn-danger-outline" type="button" hidden>
+    Logout
+  </button>
+
+  <button id="btnOpenCreate" class="btn btn-primary" type="button">
+    + New Report
+  </button>
+
+  <a class="btn btn-ghost" href="#how">How it works</a>
+</nav>
+
     </div>
   </header>
 
@@ -239,41 +249,5 @@
 
   <script type="module" src="./js/app.js"></script>
 
-  <dialog id="modalAuth" class="modal">
-  <form id="authForm" class="modal-card" method="dialog" novalidate>
-    <div class="modal-head">
-      <h3 id="authTitle">Login</h3>
-      <button class="icon-btn" type="button" id="btnCloseAuth" aria-label="Close">✕</button>
-    </div>
-
-    <div class="modal-body">
-      <div class="segmented" role="tablist" aria-label="Auth tabs">
-        <button class="seg-btn" type="button" id="tabLogin" aria-selected="true">Login</button>
-        <button class="seg-btn" type="button" id="tabRegister" aria-selected="false">Register</button>
-      </div>
-
-      <div class="field">
-        <label class="label" for="authEmail">Email</label>
-        <input id="authEmail" class="input" type="email" autocomplete="email" required placeholder="you@qiu.edu" />
-      </div>
-
-      <div class="field">
-        <label class="label" for="authPassword">Password</label>
-        <input id="authPassword" class="input" type="password" autocomplete="current-password" required minlength="8" />
-        <div class="help muted">Min 8 characters.</div>
-      </div>
-
-      <div class="form-error" id="authError" hidden></div>
-      <div class="callout" role="note">
-        After login, you can view reports and manage your own posts.
-      </div>
-    </div>
-
-    <div class="modal-foot">
-      <button class="btn btn-ghost" type="button" id="btnAuthCancel">Cancel</button>
-      <button class="btn btn-primary" type="submit" id="btnAuthSubmit">Continue</button>
-    </div>
-  </form>
-</dialog>
 </body>
 </html>

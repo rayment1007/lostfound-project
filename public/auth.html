@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | Campus Lost & Found</title>
+  <meta name="description" content="Login or register for Campus Lost & Found" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <main class="auth-page">
+    <section class="auth-shell">
+      <div class="auth-brand">
+        <div class="logo" aria-hidden="true">LF</div>
+        <div>
+          <h1 class="brand-title">Campus Lost &amp; Found</h1>
+          <p class="brand-subtitle">Login to continue</p>
+        </div>
+      </div>
+
+      <form id="authPageForm" class="auth-card" novalidate>
+        <div class="auth-top">
+          <h2 id="authPageTitle">Login</h2>
+          <p class="muted" id="authPageSubtitle">Access your dashboard and manage your reports.</p>
+        </div>
+
+        <div class="segmented" role="tablist" aria-label="Auth tabs">
+          <button class="seg-btn" type="button" id="pageTabLogin" aria-selected="true">Login</button>
+          <button class="seg-btn" type="button" id="pageTabRegister" aria-selected="false">Register</button>
+        </div>
+
+        <div class="field">
+          <label class="label" for="pageAuthEmail">Email</label>
+          <input
+            id="pageAuthEmail"
+            class="input"
+            type="email"
+            autocomplete="email"
+            required
+            placeholder="you@qiu.edu"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label" for="pageAuthPassword">Password</label>
+          <input
+            id="pageAuthPassword"
+            class="input"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="8"
+            placeholder="Minimum 8 characters"
+          />
+        </div>
+
+        <div id="pageAuthError" class="form-error" hidden></div>
+
+        <button class="btn btn-primary auth-submit" type="submit" id="pageAuthSubmit">
+          Continue
+        </button>
+
+        <p class="muted auth-note">
+          After login, you can browse reports and manage your own posts.
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    window.API_BASE_URL = "https://lostfound-project.onrender.com";
+  </script>
+  <script type="module" src="./js/auth.js"></script>
+</body>
+</html>
