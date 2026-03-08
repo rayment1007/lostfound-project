@@ -28,6 +28,7 @@ const els = {
   btnClear: $("#btnClear"),
 
   btnLogout: $("#btnLogout"),
+  btnMyReports: $("#btnMyReports"),
   currentUserEmail: $("#currentUserEmail"),
 
   modalForm: $("#modalForm"),
@@ -65,6 +66,7 @@ let state = {
   items: [],
   tab: "all",
   selectedId: null,
+  onlyMine: false,
 };
 
 function safeText(el, text) {
@@ -80,6 +82,19 @@ function isOwner(item) {
   const user = getCurrentUser();
   if (!user || !item) return false;
   return Number(user.id) === Number(item.owner_user_id);
+}
+
+function myItemsCount() {
+  return state.items.filter(isOwner).length;
+}
+
+function updateMyReportsButton() {
+  if (!els.btnMyReports) return;
+
+  const count = myItemsCount();
+  els.btnMyReports.textContent = state.onlyMine
+    ? `Showing My Reports (${count})`
+    : `My Reports (${count})`;
 }
 
 function syncDetailActionButtons(item) {
@@ -122,6 +137,10 @@ function applyFilters(items) {
   const tab = state.tab;
 
   let out = [...items];
+
+  if (state.onlyMine) {
+    out = out.filter(isOwner);
+  }
 
   if (tab !== "all") out = out.filter((x) => x.category === tab);
   if (status !== "all") out = out.filter((x) => x.status === status);
@@ -166,6 +185,7 @@ function render() {
   safeText(els.statResolved, stats.resolved);
 
   safeText(els.listMeta, `${filtered.length} item${filtered.length === 1 ? "" : "s"}`);
+  updateMyReportsButton();
 
   els.list.innerHTML = "";
 
@@ -478,6 +498,11 @@ function showCurrentUser() {
   safeText(els.currentUserEmail, user?.email || "Unknown user");
 }
 
+function toggleMine() {
+  state.onlyMine = !state.onlyMine;
+  render();
+}
+
 function wireEvents() {
   els.btnOpenCreate.addEventListener("click", openCreate);
   els.btnOpenCreate2.addEventListener("click", openCreate);
@@ -502,6 +527,10 @@ function wireEvents() {
     if (!item || !isOwner(item)) return;
     removeItem(state.selectedId);
   });
+
+  if (els.btnMyReports) {
+    els.btnMyReports.addEventListener("click", toggleMine);
+  }
 
   els.q.addEventListener("input", render);
   els.statusFilter.addEventListener("change", render);

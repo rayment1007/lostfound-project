@@ -3,25 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login | Campus Lost & Found</title>
-  <meta name="description" content="Login or register for Campus Lost & Found" />
+  <title>Login | QIU Lost & Found Portal</title>
+  <meta name="description" content="Login or register for QIU Lost & Found Portal" />
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
 <body>
   <main class="auth-page">
     <section class="auth-shell">
-      <div class="auth-brand">
-        <div class="logo" aria-hidden="true">QIU</div>
-        <div>
-          <h1 class="brand-title">Quest International University Lost &amp; Found Portal</h1>
-<p class="brand-subtitle">Sign in with your Quest student email</p>
+      <div class="auth-hero">
+        <div class="auth-brand">
+          <div class="logo" aria-hidden="true">QIU</div>
+          <div>
+            <h1 class="brand-title">Quest International University Lost &amp; Found Portal</h1>
+            <p class="brand-subtitle">Sign in with your Quest student email</p>
+          </div>
         </div>
+
+        <h1>Report, track, and manage lost &amp; found items with ease.</h1>
+        <p>
+          A simple university portal for QIU students to submit lost or found item reports,
+          view item details, and manage their own posts securely.
+        </p>
       </div>
 
       <form id="authPageForm" class="auth-card" novalidate>
         <div class="auth-top">
           <h2 id="authPageTitle">Login</h2>
-          <p class="muted" id="authPageSubtitle">Access your dashboard and manage your reports.</p>
+          <p class="muted" id="authPageSubtitle">Use your QIU email to access the portal.</p>
         </div>
 
         <div class="segmented" role="tablist" aria-label="Auth tabs">
@@ -37,7 +45,7 @@
             type="email"
             autocomplete="email"
             required
-            placeholder="you@qiu.edu"
+            placeholder="you@qiu.edu.my"
           />
         </div>
 
@@ -57,11 +65,11 @@
         <div id="pageAuthError" class="form-error" hidden></div>
 
         <button class="btn btn-primary auth-submit" type="submit" id="pageAuthSubmit">
-          Continue
+          Login
         </button>
 
-        <p class="muted auth-note">
-          After login, you can browse reports and manage your own posts.
+        <p class="auth-note">
+          Only QIU email addresses ending with <strong>@qiu.edu.my</strong> are allowed.
         </p>
       </form>
     </section>
