@@ -710,3 +710,76 @@ body{
 .btn-ghost:hover{
   background:#f3f9ff;
 }
+
+/* ===== FIX: modal use current class names ===== */
+.modal-card{
+  width:min(920px, calc(100vw - 32px));
+  max-height:min(88vh, 980px);
+  overflow:auto;
+  background: linear-gradient(180deg, #ffffff, #f6fbff);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:26px;
+  box-shadow: 0 24px 70px rgba(30, 72, 120, .18);
+}
+
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:20px 22px;
+  border-bottom:1px solid var(--border);
+  background:#eef7ff;
+}
+
+.modal-head h3,
+.modal-head h2{
+  margin:0;
+  color:#183153;
+}
+
+.modal-body{
+  padding:22px;
+  background:transparent;
+}
+
+.modal-foot{
+  padding:20px 22px;
+  border-top:1px solid var(--border);
+  background:#f7fbff;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.modal .label{
+  color:#56708d;
+}
+
+.modal .input,
+.modal .select,
+.modal .textarea{
+  background:#fff;
+}
+
+.modal .textarea{
+  min-height:160px;
+}
+
+.modal .help{
+  color:#d9534f;
+}
+
+.modal .form-error{
+  color:#b54343;
+  background:#fff1f1;
+  border:1px solid #f1b7b7;
+}
+
+.modal .callout{
+  border:1px solid #cfe1f7;
+  background:#eef7ff;
+  color:#4f6580;
+}

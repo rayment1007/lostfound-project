@@ -81,7 +81,8 @@ function getCurrentUser() {
 function isOwner(item) {
   const user = getCurrentUser();
   if (!user || !item) return false;
-  return Number(user.id) === Number(item.owner_user_id);
+
+  return String(user.id).trim() === String(item.owner_user_id).trim();
 }
 
 function myItemsCount() {
